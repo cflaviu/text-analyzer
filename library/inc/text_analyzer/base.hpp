@@ -47,5 +47,5 @@ namespace text_analyzer
     using unique_ptr = std::unique_ptr<base>;
     using shared_ptr = std::shared_ptr<base>;
 
-    std::ostream& log();
+    std::osyncstream log();
 }

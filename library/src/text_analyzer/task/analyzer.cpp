@@ -1,11 +1,12 @@
 #include "text_analyzer/task/analyzer.hpp"
-#include "text_analyzer/factory.hpp"
+#include "text_analyzer/pool.hpp"
 #include "text_analyzer/wrapper.hpp"
+#include <syncstream>
 
 namespace text_analyzer::task
 {
-    analyzer::analyzer(factory& factory, file_path_queue& file_paths, result_queue& results):
-        extended(factory, file_paths),
+    analyzer::analyzer(pool& pool, file_path_queue& file_paths, result_queue& results):
+        extended(pool, file_paths),
         results_(results)
     {
     }
@@ -18,22 +19,20 @@ namespace text_analyzer::task
     {
         try
         {
-            wrapper actual_analyzer(factory_, file_path);
+            wrapper actual_analyzer(pool_, file_path);
             auto result = actual_analyzer();
 
-            {
-                log() << "analysis finished: " << file_path << '\n';
-            }
+            log() << "analysis finished: " << file_path << std::endl;
 
             return result;
         }
         catch (const std::exception& ex)
         {
-            log() << "failed to process " << file_path << ": " << ex.what() << "\n";
+            log() << "failed to process " << file_path << ": " << ex.what() << std::endl;
         }
         catch (...)
         {
-            log() << "failed to process " << file_path << ": uknown error\n";
+            log() << "failed to process " << file_path << ": uknown error" << std::endl;
         }
 
         return {};
@@ -68,10 +67,7 @@ namespace text_analyzer::task
                 log() << "trying analyzing file\n";
                 if (!execute())
                 {
-                    {
-                        log() << "exit - no more files\n";
-                    }
-
+                    log() << "exit - no more files\n";
                     break;
                 }
             }

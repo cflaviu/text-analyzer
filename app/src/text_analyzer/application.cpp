@@ -1,17 +1,15 @@
 #include "text_analyzer/application.hpp"
 #include "text_analyzer/pdf.hpp"
 #include "text_analyzer/text.hpp"
-#include <iostream>
+#include <syncstream>
 
 namespace text_analyzer
 {
-    application::application(const config& config):
-        factory_(
-            config.analyzer_thread_count, [&] { return std::make_shared<text::dummy>(config.initial_text_file_content_capacity); },
-            [&] { return std::make_shared<pdf::dummy>(config.initial_pdf_content_capacity); }),
+    application::application(const config& config, pool::map_type factory_map):
+        pool_(std::move(factory_map)),
         file_paths_(config.file_path_queue_capacity),
         results_(config.result_queue_capacity),
-        analyzer_(std::ref(factory_), std::ref(file_paths_), std::ref(results_)),
+        analyzer_(std::ref(pool_), std::ref(file_paths_), std::ref(results_)),
         saver_(results_)
     {
         analyzer_threads_.reserve(config.analyzer_thread_count);
@@ -33,7 +31,7 @@ namespace text_analyzer
     {
         log() << "start using " << analyzer_threads_.capacity() << " threads\n";
 
-        task::file_path_generator file_path_generator(factory_, file_paths_, directory);
+        task::file_path_generator file_path_generator(pool_, file_paths_, directory);
         file_path_generator_thread_ = std::thread(std::ref(file_path_generator));
 
         for (auto count = analyzer_threads_.capacity(); count--;)
@@ -45,6 +43,6 @@ namespace text_analyzer
         wait_execution();
 
         log() << "finished\nitems generated: " << file_path_generator.item_count() << "\nitems processed: " << analyzer_.item_count()
-              << "\nitems saved: " << saver_.item_count() << '\n';
+              << "\nitems saved: " << saver_.item_count() << std::endl;
     }
 }

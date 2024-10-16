@@ -23,21 +23,21 @@ namespace stdext
         // Get the current size of the queue
         size_t size() const
         {
-            std::lock_guard<std::mutex> lock(mutex_);
+            lock_guard lock(mutex_);
             return queue_.size();
         }
 
         // Check if the queue is empty
         bool empty() const
         {
-            std::lock_guard<std::mutex> lock(mutex_);
+            lock_guard lock(mutex_);
             return queue_.empty();
         }
 
         // Check if the queue is full
         bool full() const
         {
-            std::lock_guard<std::mutex> lock(mutex_);
+            lock_guard lock(mutex_);
             return queue_.size() == capacity_;
         }
 
@@ -49,14 +49,14 @@ namespace stdext
         {
             active_producers_.fetch_sub(1, std::memory_order_relaxed);
             // Notify consumers in case the queue is empty and all producers are done
-            std::lock_guard<std::mutex> lock(mutex_);
+            lock_guard lock(mutex_);
             not_empty_cv_.notify_all();
         }
 
         // Add an item to the queue, blocking if the queue is full
         void push(const T& item)
         {
-            std::unique_lock<std::mutex> lock(mutex_);
+            unique_lock lock(mutex_);
             not_full_cv_.wait(lock, [this]() { return (queue_.size() < capacity_) || (active_producers_ != 0); });
             if (active_producers_ != 0)
             {
@@ -68,7 +68,7 @@ namespace stdext
         // Add an item to the queue (move version), blocking if the queue is full
         void push(T&& item)
         {
-            std::unique_lock<std::mutex> lock(mutex_);
+            unique_lock lock(mutex_);
             not_full_cv_.wait(lock, [this]() { return (queue_.size() < capacity_) || (active_producers_ != 0); });
             if (active_producers_ != 0)
             {
@@ -81,7 +81,7 @@ namespace stdext
         // Returns std::nullopt if all producers have finished and the queue is empty
         std::optional<T> try_pop()
         {
-            std::unique_lock<std::mutex> lock(mutex_);
+            unique_lock lock(mutex_);
             not_empty_cv_.wait(lock, [this]() { return !queue_.empty() || (queue_.empty() && active_producers_ == 0); });
 
             // If queue is empty and no active producers, signal termination
@@ -99,7 +99,7 @@ namespace stdext
         template <typename _Container>
         std::pair<bool, bool> dequeue(_Container& container, const std::size_t max_amount)
         {
-            std::unique_lock<std::mutex> lock(mutex_);
+            unique_lock lock(mutex_);
             not_empty_cv_.wait(lock, [this, max_amount]() { return queue_.size() >= max_amount || (active_producers_ == 0); });
 
             const auto count = std::min(max_amount, queue_.size());
@@ -119,7 +119,7 @@ namespace stdext
         template <typename _Container>
         void dequeue_all(_Container& container)
         {
-            std::lock_guard<std::mutex> lock(mutex_);
+            lock_guard lock(mutex_);
             while (!queue_.empty())
             {
                 container.push_back(std::move(queue_.front()));
@@ -129,7 +129,10 @@ namespace stdext
             not_full_cv_.notify_all(); // Notify waiting producers
         }
 
-    private:
+    protected:
+        using lock_guard = std::lock_guard<std::mutex>;
+        using unique_lock = std::unique_lock<std::mutex>;
+
         std::queue<T> queue_;
         size_t capacity_;
         mutable std::mutex mutex_;

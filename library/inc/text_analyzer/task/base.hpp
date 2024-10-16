@@ -10,7 +10,7 @@ namespace text_analyzer
 
     using lock_guard_t = std::lock_guard<std::mutex>;
 
-    class factory;
+    class pool;
 }
 
 namespace text_analyzer::task
@@ -36,11 +36,11 @@ namespace text_analyzer::task
     class extended: public base
     {
     public:
-        extended(factory& factory, file_path_queue& file_paths): factory_(factory), file_paths_(file_paths) {}
-        extended(extended&& item): extended(item.factory_, item.file_paths_) {}
+        extended(pool& pool, file_path_queue& file_paths): pool_(pool), file_paths_(file_paths) {}
+        extended(extended&& item): extended(item.pool_, item.file_paths_) {}
 
     protected:
-        factory& factory_;
+        pool& pool_;
         file_path_queue& file_paths_;
     };
 }

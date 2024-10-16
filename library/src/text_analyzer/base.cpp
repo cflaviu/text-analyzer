@@ -10,7 +10,7 @@ namespace text_analyzer
 
     void base::load_file(const fs::path& file_path) const
     {
-        std::ifstream file(file_path);
+        std::ifstream file(file_path, std::ios::binary);
 
         file.seekg(0, std::ios::end);
         const auto size = static_cast<std::size_t>(file.tellg());

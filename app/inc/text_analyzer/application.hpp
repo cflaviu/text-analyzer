@@ -1,7 +1,7 @@
 #pragma once
 #ifndef PCH
     #include <filesystem>
-    #include <text_analyzer/factory.hpp>
+    #include <text_analyzer/pool.hpp>
     #include <text_analyzer/task/analyzer.hpp>
     #include <text_analyzer/task/file_path_generator.hpp>
     #include <text_analyzer/task/saver.hpp>
@@ -18,19 +18,17 @@ namespace text_analyzer
         {
             std::size_t file_path_queue_capacity = 1000u;
             std::size_t result_queue_capacity = 1000u;
-            std::size_t initial_text_file_content_capacity = 50u * 1024u;
-            std::size_t initial_pdf_content_capacity = 500u * 1024u;
             std::uint8_t analyzer_thread_count = 4u;
         };
 
-        application(const config& config);
+        application(const config& config, pool::map_type factory_map);
 
         void run(const fs::path& directory);
 
     private:
         void wait_execution();
 
-        factory factory_;
+        pool pool_;
         task::file_path_queue file_paths_;
         task::result_queue results_;
         task::analyzer analyzer_;

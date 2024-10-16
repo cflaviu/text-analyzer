@@ -1,12 +1,12 @@
 #include "text_analyzer/wrapper.hpp"
-#include "text_analyzer/factory.hpp"
+#include "text_analyzer/pool.hpp"
 
 namespace text_analyzer
 {
-    wrapper::wrapper(factory& factory, const fs::path& file_path):
-        analyzer_ {factory.acquire(file_path)},
+    wrapper::wrapper(pool& pool, const fs::path& file_path):
+        analyzer_ {pool.acquire(file_path.extension())},
         file_path_(file_path),
-        factory_(factory)
+        pool_(pool)
     {
     }
 
@@ -14,7 +14,7 @@ namespace text_analyzer
     {
         try
         {
-            factory_.release(file_path_, analyzer_);
+            pool_.release(file_path_, analyzer_);
         }
         catch (...)
         {

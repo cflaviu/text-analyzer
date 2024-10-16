@@ -9,7 +9,7 @@ namespace text_analyzer::task
     class file_path_generator: public extended
     {
     public:
-        file_path_generator(factory& factory, file_path_queue& file_paths, fs::path directory);
+        file_path_generator(pool& pool, file_path_queue& file_paths, fs::path directory);
         file_path_generator(file_path_generator&& item);
 
         file_path_generator() = delete;

@@ -5,6 +5,8 @@
 
 namespace text_analyzer::text
 {
+    inline static const extension_type extension {".txt"};
+
     // Result of text file analysis
     class result: public text_analyzer::result
     {
@@ -20,9 +22,7 @@ namespace text_analyzer::text
 
         base(const std::size_t initial_file_content_capacity): text_analyzer::base(initial_file_content_capacity) {}
 
-        inline static const extension_type ext {".txt"};
-
-        const extension_type& extension() const noexcept override { return ext; }
+        const extension_type& extension() const noexcept override { return text::extension; }
 
     private:
     };

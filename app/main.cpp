@@ -10,6 +10,11 @@ enum error
     unknown_exception,
 };
 
+namespace text_analyzer
+{
+    pool::map_type create_factory_map(const std::size_t pool_size);
+}
+
 int main(const int argc, const char* const argv[]) noexcept
 {
     try
@@ -21,10 +26,12 @@ int main(const int argc, const char* const argv[]) noexcept
             const fs::path directory = argv[1u];
             if (fs::exists(directory))
             {
-                text_analyzer::application::config config {};
+                using namespace text_analyzer;
+
+                application::config config {};
                 config.analyzer_thread_count = 16u;
 
-                text_analyzer::application app(config);
+                application app(config, text_analyzer::create_factory_map(config.analyzer_thread_count));
                 app.run(directory);
             }
             else

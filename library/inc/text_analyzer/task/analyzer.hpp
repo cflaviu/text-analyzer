@@ -9,7 +9,7 @@ namespace text_analyzer::task
     class analyzer: public extended
     {
     public:
-        analyzer(factory& factory, file_path_queue& file_paths, result_queue& results);
+        analyzer(pool& pool, file_path_queue& file_paths, result_queue& results);
         analyzer(analyzer&& item);
 
         analyzer() = delete;

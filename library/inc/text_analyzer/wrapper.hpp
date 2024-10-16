@@ -5,15 +5,15 @@
 
 namespace text_analyzer
 {
-    class factory;
+    class pool;
 
     class wrapper
     {
     public:
-        // Constructor: acquire the appropriate analyzer from the factory
-        wrapper(factory& factory, const fs::path& file_path);
+        // Constructor: acquire the appropriate analyzer from the pool
+        wrapper(pool& pool, const fs::path& file_path);
 
-        // Destructor: release the analyzer back to the factory
+        // Destructor: release the analyzer back to the pool
         ~wrapper();
 
         // Overload operator() to behave like the wrapped analyzer
@@ -22,6 +22,6 @@ namespace text_analyzer
     private:
         shared_ptr analyzer_;
         fs::path file_path_;
-        factory& factory_;
+        pool& pool_;
     };
 }

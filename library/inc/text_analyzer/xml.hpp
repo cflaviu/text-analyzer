@@ -3,18 +3,18 @@
     #include <text_analyzer/base.hpp>
 #endif
 
-namespace text_analyzer::pdf
+namespace text_analyzer::xml
 {
-    inline static const extension_type extension {".pdf"};
+    inline static const extension_type extension {".xml"};
 
-    // Result of PDF analysis
+    // Result of XML analysis
     class result: public text_analyzer::result
     {
     public:
-        std::string to_string() const override { return "pdf analysis result"; }
+        std::string to_string() const override { return "xml analysis result"; }
     };
 
-    // Base PDF analyzer
+    // Base XML analyzer
     class base: public text_analyzer::base
     {
     public:
@@ -22,18 +22,18 @@ namespace text_analyzer::pdf
 
         base(const std::size_t initial_file_content_capacity): text_analyzer::base(initial_file_content_capacity) {}
 
-        const extension_type& extension() const noexcept override { return pdf::extension; }
+        const extension_type& extension() const noexcept override { return xml::extension; }
     };
 
-    // Dummy PDF analyzer
+    // Dummy XML analyzer
     class dummy: public base
     {
     public:
         // Dummy result of PDF analysis
-        class result: public pdf::result
+        class result: public xml::result
         {
         public:
-            std::string to_string() const override { return "dummy pdf analysis result"; }
+            std::string to_string() const override { return "dummy xml analysis result"; }
         };
 
         dummy(const std::size_t initial_file_content_capacity): base(initial_file_content_capacity) {}

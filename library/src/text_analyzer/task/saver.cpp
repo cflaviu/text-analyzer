@@ -1,4 +1,5 @@
 #include "text_analyzer/task/saver.hpp"
+#include <syncstream>
 
 namespace text_analyzer::task
 {
@@ -8,18 +9,17 @@ namespace text_analyzer::task
 
     void saver::store()
     {
-        log() << "saved " << bulk_results_.size() << " results into db\n";
+        log() << "saved " << bulk_results_.size() << " results into db" << std::endl;
 
         item_count_ += bulk_results_.size();
         bulk_results_.clear();
     }
 
-#if 1
     void saver::execute()
     {
         for (bool ok = true; ok;)
         {
-            log() << "trying collecting results\n";
+            log() << "trying collecting results" << std::endl;
 
             const auto [enqueueing_active_, queue_empty] = results_.dequeue(bulk_results_, bulk_size_);
             if (!bulk_results_.empty())
@@ -27,49 +27,8 @@ namespace text_analyzer::task
             ok = enqueueing_active_ || !queue_empty;
         }
 
-        log() << "saving done\n";
+        log() << "saving done" << std::endl;
     }
-#else
-    void saver::execute()
-    {
-        while (true)
-        {
-            {
-                lock_guard_t cout_lock(cout_mutex);
-                log() << "trying collect results\n";
-            }
-
-            auto opt_result = results_.try_pop();
-            if (opt_result)
-            {
-                auto& result = *opt_result;
-                bulk_results_.push_back(std::move(result));
-
-                {
-                    lock_guard_t cout_lock(cout_mutex);
-                    log() << "result collected\n";
-                }
-
-                // Save in batches
-                if (bulk_results_.size() >= bulk_size_)
-                    store();
-            }
-            else
-            {
-                {
-                    lock_guard_t cout_lock(cout_mutex);
-                    log() << "exit - no more results\n";
-                }
-
-                break;
-            }
-        }
-
-        // Save any remaining results
-        if (!bulk_results_.empty())
-            store();
-    }
-#endif
 
     void saver::operator()() noexcept
     {
@@ -79,9 +38,11 @@ namespace text_analyzer::task
         }
         catch (const std::exception& ex)
         {
+            log() << "saver exception: " << ex.what() << std::endl;
         }
         catch (...)
         {
+            log() << "saver unknown exception" << std::endl;
         }
     }
 }

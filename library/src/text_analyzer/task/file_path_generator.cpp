@@ -1,11 +1,11 @@
 #include "text_analyzer/task/file_path_generator.hpp"
-#include "text_analyzer/factory.hpp"
+#include "text_analyzer/pool.hpp"
 #include <syncstream>
 
 namespace text_analyzer::task
 {
-    file_path_generator::file_path_generator(factory& factory, file_path_queue& file_paths, fs::path directory):
-        extended(factory, file_paths),
+    file_path_generator::file_path_generator(pool& pool, file_path_queue& file_paths, fs::path directory):
+        extended(pool, file_paths),
         directory_(std::move(directory))
     {
     }
@@ -17,11 +17,15 @@ namespace text_analyzer::task
     void file_path_generator::execute()
     {
         for (const auto& entry: fs::recursive_directory_iterator(directory_))
-            if (entry.is_regular_file() && factory_.is_accepted(entry.path().extension()))
+            if (entry.is_regular_file())
             {
-                file_paths_.push(entry.path());
-                log() << "file found: " << entry.path() << '\n';
-                ++item_count_; // Increment the count of files being processed
+                const auto& file_path = entry.path();
+                if (pool_.is_accepted(file_path.extension()))
+                {
+                    file_paths_.push(file_path);
+                    log() << "file found: " << file_path << std::endl;
+                    ++item_count_; // Increment the count of files being processed
+                }
             }
     }
 
@@ -35,9 +39,11 @@ namespace text_analyzer::task
         }
         catch (const std::exception& ex)
         {
+            log() << "file_path_generator exception: " << ex.what() << std::endl;
         }
         catch (...)
         {
+            log() << "file_path_generator unknown exception\n";
         }
 
         try
@@ -47,9 +53,11 @@ namespace text_analyzer::task
         }
         catch (const std::exception& ex)
         {
+            log() << "file_path_generator ending-equeue exception: " << ex.what() << std::endl;
         }
         catch (...)
         {
+            log() << "file_path_generator ending-equeue unknown exception\n";
         }
     }
 }
